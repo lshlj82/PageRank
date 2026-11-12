@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>페이지랭크</title>
+<meta name="description" content="고유 벡터 중심도, 무작위 서퍼, 거듭제곱법, 링크 농장으로 알아보는 페이지랭크 인터랙티브 데모. 이상훈 교수의 강의 슬라이드를 바탕으로 Claude Opus 5.5가 만들었습니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Serif+KR:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F1F4F8;--grid:#DFE5EE;--panel:#FFFFFF;--ink:#1B2238;--muted:#566079;--rule:#C7CFDC;
+  --marker:#D11F3A;--edge:#AEB7C7;--none:#BAC2D0;--link:#2F6BDB;--codebg:#EEF1F6;
+  --c0:#2A9D63;--c1:#2F6BDB;--c2:#E5484D;--c3:#0F9DB0;--c4:#E39B0B;--c5:#8E44C8;--c6:#9A6136;--c7:#D9488F;
+  --hand:"Fraunces","Noto Serif KR","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --text:"IBM Plex Sans","Noto Serif KR",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111726;--grid:#1B2335;--panel:#161E30;--ink:#E6EAF3;--muted:#9AA5BC;--rule:#2C3750;
+  --marker:#FF5A6E;--edge:#46536E;--none:#56627A;--link:#6C9BFF;--codebg:#1D2740;
+  --c0:#3CC383;--c1:#5B8DEF;--c2:#FF6B6F;--c3:#2DC3D6;--c4:#F5B53A;--c5:#B07AF0;--c6:#C98A5C;--c7:#F07AB3;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111726;--grid:#1B2335;--panel:#161E30;--ink:#E6EAF3;--muted:#9AA5BC;--rule:#2C3750;
+  --marker:#FF5A6E;--edge:#46536E;--none:#56627A;--link:#6C9BFF;--codebg:#1D2740;
+  --c0:#3CC383;--c1:#5B8DEF;--c2:#FF6B6F;--c3:#2DC3D6;--c4:#F5B53A;--c5:#B07AF0;--c6:#C98A5C;--c7:#F07AB3;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background-color:var(--paper);color:var(--ink);font-family:var(--text);font-size:16.5px;line-height:1.62;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word}
+a{color:var(--link)}
+:focus-visible{outline:2.5px solid var(--marker);outline-offset:2px;border-radius:3px}
+i,.m{font-style:italic}
+sub,sup{font-size:.72em}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 64px 0 0;flex-wrap:wrap}
+.back{font-size:14px;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--ink);text-decoration:underline}
+.langlink{font-size:14px;padding:3px 12px;border:1.5px solid var(--ink);border-radius:8px;color:var(--ink);text-decoration:none}
+.langlink:hover{background:var(--ink);color:var(--paper)}
+.hero{padding:34px 0 18px}
+.hero h1{font-family:var(--hand);font-weight:600;font-size:clamp(36px,5.4vw,64px);line-height:1.04;margin:0 0 14px;letter-spacing:-.5px;max-width:16ch}
+.hero .sub{font-size:18.5px;max-width:62ch;margin:0 0 12px}
+.credit{font-size:14px;color:var(--muted);margin:0}
+section{padding:46px 0 18px;border-top:1.5px dashed var(--rule)}
+h2{font-family:var(--hand);font-weight:600;font-size:clamp(26px,3.4vw,36px);line-height:1.15;margin:0 0 14px;display:flex;gap:14px;align-items:baseline}
+h2 .n{font-family:var(--text);font-size:.55em;color:var(--marker);border:2px solid var(--marker);border-radius:50%;width:1.8em;height:1.8em;display:inline-grid;place-items:center;flex:none;transform:translateY(-.12em)}
+h3{font-size:17px;margin:0 0 6px}
+.prose{max-width:70ch}
+.prose p{margin:0 0 12px}
+.prose ol{margin:0 0 12px;padding-left:1.4em}
+.prose li{margin:0 0 8px}
+.key{display:inline-flex;flex-direction:column;gap:8px;border:2px solid var(--ink);border-radius:6px;padding:12px 20px;margin:6px 0 16px;background:var(--panel);font-size:18px;max-width:100%;overflow-x:auto}
+.key .row{white-space:nowrap}
+.key .lg{font-size:14px;color:var(--muted);white-space:normal;max-width:60ch}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em;line-height:1.15;margin:0 2px}
+.frac>span:first-child{border-bottom:1.4px solid currentColor;padding:0 3px}
+.sim{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,1fr);gap:20px;background:var(--panel);border:1.5px solid var(--rule);border-radius:12px;padding:18px}
+@media (max-width:860px){.sim{grid-template-columns:minmax(0,1fr)}}
+.viz{min-width:0;display:flex;flex-direction:column;gap:8px}
+.viz svg{width:100%;height:auto;display:block}
+.controls{display:flex;flex-direction:column;gap:12px;min-width:0}
+.lbl{font-size:14.5px;color:var(--muted);display:block;margin-bottom:4px}
+.seg,.btns{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:14px;padding:5px 11px;border-radius:7px;border:1.5px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--ink)}
+button:disabled{opacity:.45;cursor:default;border-color:var(--rule)}
+button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--marker);border-color:var(--marker);color:#fff}
+dl.read{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:0;font-size:15px;border-top:1px solid var(--rule);padding-top:10px}
+dl.read dt{color:var(--muted)}
+dl.read dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.cap{font-size:14px;color:var(--muted);margin:0}
+.log{font-size:15px;min-height:4.8em;margin:0;padding:8px 12px;border-left:4px solid var(--marker);background:color-mix(in srgb,var(--marker) 7%,transparent);border-radius:0 6px 6px 0}
+table.dq{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+.dq th,.dq td{padding:4px 6px;border-bottom:1px solid var(--rule);text-align:right}
+.dq th:first-child,.dq td:first-child{text-align:left}
+.dq th{color:var(--muted);font-weight:500}
+.dq tr.best td{font-weight:600;background:color-mix(in srgb,var(--marker) 9%,transparent)}
+.dq .cur{color:var(--muted);font-weight:400;font-size:12.5px}
+.chip{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid var(--panel)}
+.dqwrap{min-height:7.5em}
+.strip{display:grid;grid-template-columns:minmax(0,1.2fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;margin-top:14px;background:var(--panel);border:1.5px solid var(--rule);border-radius:12px;padding:14px}
+.strip figure{margin:0;min-width:0}
+.strip svg{width:100%;height:auto;display:block}
+.strip figcaption{font-size:13.5px;color:var(--muted);text-align:center}
+.arrow{font-size:12.5px;color:var(--marker);text-align:center;line-height:1.25;font-weight:600}
+.arrow b{display:block;font-size:26px;line-height:1}
+@media (max-width:700px){.strip{grid-template-columns:minmax(0,1fr)}.arrow b{transform:rotate(90deg)}}
+.boxed{border:1.5px solid var(--rule);border-radius:10px;padding:14px 16px;background:var(--panel);font-size:15.5px;margin-top:16px;max-width:78ch}
+.boxed h3{margin:0 0 6px}
+.boxed p{margin:0 0 8px}
+pre.code{font-family:var(--mono);font-size:14px;line-height:1.55;background:var(--codebg);border:1.5px solid var(--rule);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 14px;max-width:100%}
+code{font-family:var(--mono);font-size:.9em}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;border:1.5px solid var(--marker);color:var(--marker);margin-left:6px}
+footer{padding:36px 0 56px;border-top:1.5px dashed var(--rule);margin-top:40px;color:var(--muted);font-size:14.5px}
+footer p{margin:0 0 8px;max-width:90ch}
+svg text{font-family:var(--text)}
+svg text:not([fill]){fill:var(--ink)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+button.theme-btn{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);
+  width:40px;height:40px;padding:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+  background:var(--panel);color:var(--ink);border:1px solid var(--rule);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+button.theme-btn:hover{border-color:var(--ink)}
+button.theme-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.bars{width:100%;height:auto;display:block}
+.eqline{font-size:15px;line-height:1.7;margin:0;padding:8px 12px;border-left:4px solid var(--link);background:color-mix(in srgb,var(--link) 7%,transparent);border-radius:0 6px 6px 0;overflow-x:auto}
+.quote{font-family:var(--hand);font-size:19px;line-height:1.45;color:var(--c5);border-left:4px solid var(--c5);padding:4px 0 4px 16px;margin:18px 0 0;max-width:70ch}
+.quote small{display:block;font-family:var(--text);font-size:14px;color:var(--muted);margin-top:4px}
+input[type=range]{width:100%;accent-color:var(--marker)}
+.rowlbl{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.rowlbl output{font-variant-numeric:tabular-nums;font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media (max-width:700px){.two{grid-template-columns:minmax(0,1fr)}}
+.two figure{margin:0;background:var(--panel);border:1.5px solid var(--rule);border-radius:12px;padding:12px;min-width:0}
+.two svg{width:100%;height:auto;display:block}
+.two figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+table.rk{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+.rk th,.rk td{padding:3px 6px;border-bottom:1px solid var(--rule);text-align:right}
+.rk th:first-child,.rk td:first-child{text-align:left}
+.rk th{color:var(--muted);font-weight:500}
+.rk tr.tgt td{font-weight:600;background:color-mix(in srgb,var(--c4) 14%,transparent)}
+.viz svg.g{cursor:pointer}
+.big{font-size:1.25em;vertical-align:-.08em}
+</style>
+<script>try { const t = localStorage.getItem("netsci-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+</head>
+<body>
+<button id="themeBtn" class="theme-btn" type="button" aria-label=""></button>
+<div class="wrap topline">
+  <a class="back" href="https://lshlj82.github.io/netsci-course-GNU/" data-i18n="back"></a>
+  <a class="langlink" href="index.html" hreflang="en" lang="en">English</a>
+</div>
+<header class="wrap hero">
+  <h1 data-i18n="title"></h1>
+  <p class="sub" data-i18n="sub"></p>
+  <p class="credit" data-i18n="credit"></p>
+</header>
+
+<main class="wrap">
+<section id="eig">
+  <h2><span class="n">1</span><span data-i18n="h1"></span></h2>
+  <div class="prose"><p data-i18n="p1a"></p></div>
+  <div class="key">
+    <span class="row"><i>x</i><sub><i>i</i></sub> ∝ <span class="big">∑</span><sub><i>j</i>∈<i>ν</i>(<i>i</i>)</sub> <i>x</i><sub><i>j</i></sub> = <span class="big">∑</span><sub><i>j</i></sub> <i>a</i><sub><i>ij</i></sub><i>x</i><sub><i>j</i></sub> &nbsp;&nbsp;⟶&nbsp;&nbsp; <b>A</b><b>x</b> = <i>λ</i><b>x</b></span>
+    <span class="lg" data-i18n="eigLegend"></span>
+  </div>
+  <div class="prose"><p data-i18n="p1b"></p></div>
+  <div class="sim">
+    <div class="viz">
+      <svg id="eNet" class="g" viewBox="0 0 520 420" role="img" aria-labelledby="eCap"></svg>
+      <p class="cap" id="eCap"></p>
+    </div>
+    <div class="controls">
+      <div class="btns"><button type="button" class="primary" id="eStep"></button><button type="button" id="eRun"></button><button type="button" id="eRand"></button><button type="button" id="eReset"></button></div>
+      <dl class="read" id="eRead"></dl>
+      <svg id="eBars" class="bars" viewBox="0 0 400 230" role="img" aria-labelledby="eBarsCap"></svg>
+      <p class="cap" id="eBarsCap" data-i18n="eBarsCap"></p>
+    </div>
+  </div>
+  <div class="boxed"><h3 data-i18n="dirH"></h3><p data-i18n="dirP"></p></div>
+  <p class="quote"><span data-i18n="quote"></span><small data-i18n="quoteBy"></small></p>
+</section>
+
+<section id="surfer">
+  <h2><span class="n">2</span><span data-i18n="h2"></span></h2>
+  <div class="prose"><p data-i18n="p2a"></p></div>
+  <div class="key">
+    <span class="row"><i>R</i><sub><i>t</i></sub>(<i>i</i>) = <span class="frac"><span><i>α</i></span><span><i>N</i></span></span> + (1 − <i>α</i>) <span class="big">∑</span><sub><i>j</i>∈pred(<i>i</i>)</sub> <span class="frac"><span><i>R</i><sub><i>t</i>−1</sub>(<i>j</i>)</span><span><i>k</i><sub>out</sub>(<i>j</i>)</span></span></span>
+    <span class="lg" data-i18n="prLegend"></span>
+  </div>
+  <div class="prose"><p data-i18n="p2b"></p></div>
+  <div class="sim">
+    <div class="viz">
+      <svg id="sNet" viewBox="0 0 560 500" role="img" aria-labelledby="sCap"></svg>
+      <p class="cap" id="sCap" data-i18n="sCap"></p>
+    </div>
+    <div class="controls">
+      <div><div class="rowlbl"><span class="lbl" data-i18n="alphaLbl"></span><output id="sAlphaOut"></output></div><input type="range" id="sAlpha" min="0" max="1" step="0.05" value="0.15"></div>
+      <div><span class="lbl" data-i18n="speed"></span><div class="seg" id="sSpeed" role="group"></div></div>
+      <div class="btns"><button type="button" class="primary" id="sPlay"></button><button type="button" id="sStep"></button><button type="button" id="sReset"></button></div>
+      <dl class="read" id="sRead"></dl>
+      <p class="log" id="sLog" aria-live="polite"></p>
+      <svg id="sBars" class="bars" viewBox="0 0 400 230" role="img" aria-labelledby="sBarsCap"></svg>
+      <p class="cap" id="sBarsCap" data-i18n="sBarsCap"></p>
+    </div>
+  </div>
+</section>
+
+<section id="power">
+  <h2><span class="n">3</span><span data-i18n="h3"></span></h2>
+  <div class="prose"><p data-i18n="p3a"></p></div>
+  <div class="sim">
+    <div class="viz">
+      <svg id="pNet" class="g" viewBox="0 0 560 500" role="img" aria-labelledby="pCap"></svg>
+      <p class="cap" id="pCap" data-i18n="pCap"></p>
+      <p class="eqline" id="pEq" aria-live="polite"></p>
+    </div>
+    <div class="controls">
+      <div><div class="rowlbl"><span class="lbl" data-i18n="alphaLbl"></span><output id="pAlphaOut"></output></div><input type="range" id="pAlpha" min="0" max="1" step="0.05" value="0.15"></div>
+      <div class="btns"><button type="button" class="primary" id="pStep"></button><button type="button" id="pRun"></button><button type="button" id="pReset"></button></div>
+      <dl class="read" id="pRead"></dl>
+      <svg id="pBars" class="bars" viewBox="0 0 400 230" role="img" aria-labelledby="pBarsCap"></svg>
+      <p class="cap" id="pBarsCap" data-i18n="pBarsCap"></p>
+      <svg id="pConv" class="bars" viewBox="0 0 400 230" role="img" aria-labelledby="pConvCap"></svg>
+      <p class="cap" id="pConvCap" data-i18n="pConvCap"></p>
+    </div>
+  </div>
+  <div class="boxed"><h3 data-i18n="dangH"></h3><p data-i18n="dangP"></p></div>
+</section>
+
+<section id="indeg">
+  <h2><span class="n">4</span><span data-i18n="h4"></span></h2>
+  <div class="prose"><p data-i18n="p4a"></p></div>
+  <div class="sim">
+    <div class="viz">
+      <svg id="fNet" viewBox="0 0 560 500" role="img" aria-labelledby="fCap"></svg>
+      <p class="cap" id="fCap"></p>
+    </div>
+    <div class="controls">
+      <div><div class="rowlbl"><span class="lbl" data-i18n="farmLbl"></span><output id="fFarmOut"></output></div><input type="range" id="fFarm" min="0" max="8" step="1" value="0"></div>
+      <div><div class="rowlbl"><span class="lbl" data-i18n="alphaLbl"></span><output id="fAlphaOut"></output></div><input type="range" id="fAlpha" min="0.05" max="1" step="0.05" value="0.15"></div>
+      <table class="rk" id="fTab"></table>
+      <p class="cap" data-i18n="fTabCap"></p>
+    </div>
+  </div>
+  <div class="prose" style="margin-top:16px"><p data-i18n="p4b"></p></div>
+</section>
+
+<section id="web">
+  <h2><span class="n">5</span><span data-i18n="h5"></span></h2>
+  <div class="prose"><p data-i18n="p5a"></p></div>
+  <div class="sim">
+    <div class="viz">
+      <svg id="wCcdf" class="bars" viewBox="0 0 440 320" role="img" aria-labelledby="wCcdfCap"></svg>
+      <p class="cap" id="wCcdfCap" data-i18n="wCcdfCap"></p>
+    </div>
+    <div class="controls">
+      <div><div class="rowlbl"><span class="lbl" data-i18n="alphaLbl"></span><output id="wAlphaOut"></output></div><input type="range" id="wAlpha" min="0.05" max="0.95" step="0.05" value="0.15"></div>
+      <div class="btns"><button type="button" class="primary" id="wNew"></button></div>
+      <dl class="read" id="wRead"></dl>
+      <svg id="wSc" class="bars" viewBox="0 0 400 300" role="img" aria-labelledby="wScCap"></svg>
+      <p class="cap" id="wScCap" data-i18n="wScCap"></p>
+    </div>
+  </div>
+</section>
+
+<section id="code">
+  <h2><span class="n">6</span><span data-i18n="h6"></span></h2>
+  <div class="prose">
+    <p data-i18n="p6a"></p>
+<pre class="code">import networkx as nx
+
+D = nx.DiGraph([(1, 0), (1, 7), (2, 0), (2, 7), (3, 0), (3, 7), (4, 0),
+                (8, 7), (9, 7), (0, 6), (6, 0), (6, 5), (7, 4)])
+PR_dict = nx.pagerank(D)                 # D is a DiGraph
+PR_dict = nx.pagerank(D, alpha=0.85)     # the same: NetworkX's alpha = 1 − α
+
+G = nx.Graph(D)                          # undirected version
+x = nx.eigenvector_centrality(G)         # section 1</pre>
+    <p data-i18n="p6b"></p>
+  </div>
+</section>
+</main>
+
+<footer class="wrap"><p data-i18n="foot1"></p><p data-i18n="foot2"></p></footer>
+
+<script>
+const I18N={
+en:{
+ back:"← Network Science: interactive demos · 네트워크 과학 교과목 보조자료",
+ title:"PageRank",
+ sub:"Demo 10 in the interactive demos for <i>Network Science</i>. From eigenvector centrality to the random surfer behind Google: watch importance flow along links, compute it with the power method, and see why counting links is not enough.",
+ credit:"Created by Claude Opus 5.5, based on the lecture slides by Prof. Sang Hoon Lee.",
+ h1:"Importance from important neighbors",
+ p1a:"In 1998 Sergey Brin and Larry Page described a prototype search engine called Google, which ranked Web pages by the structure of the links between them. The name <b>PageRank</b> is a pun: it ranks Web <i>pages</i>, and it is Larry <i>Page</i>’s rank. The idea starts from the <b>eigenvector centrality</b>: node <i>i</i>’s importance is proportional to the sum of its neighbors’ importance.",
+ eigLegend:"<i>ν</i>(<i>i</i>) is the set of neighbors of <i>i</i> and <i>a</i><sub><i>ij</i></sub> are the elements of the adjacency matrix <b>A</b>. The definition is recursive, but we have a wonderful toolkit called linear algebra: (some constant) <b>x</b> = <b>A</b><b>x</b> is the eigenvector equation for <b>A</b>, and its solution <b>x</b> = (<i>x</i><sub>1</sub>, …, <i>x</i><sub><i>N</i></sub>) is the eigenvector centrality of every node.",
+ p1b:"One way to solve it is to take the definition literally. Start with every node equally important, replace each <i>x</i><sub><i>i</i></sub> by the sum over its neighbors, rescale, and repeat. The vector settles on the eigenvector of the largest eigenvalue <i>λ</i>. In this network node 5 has the most links, but its neighbors are mostly unimportant leaves, while nodes 0–3 sit in a tightly knit group.",
+ eCap0:"Node size and shade show <i>x</i><sub><i>i</i></sub>, rescaled so that the largest is 1. Click a node to see the neighbors it adds up.",
+ eCapSel:"Node {i} adds up its neighbors {nb}: their current sum is {s} (before rescaling).",
+ eBarsCap:"Gray: degree <i>k</i><sub><i>i</i></sub>/<i>k</i><sub>max</sub>. Blue: eigenvector centrality <i>x</i><sub><i>i</i></sub>/<i>x</i><sub>max</sub>.",
+ eStep:"Step: x ← Ax",eRun:"20 steps",eRand:"Random start",eReset:"Reset",
+ eT:"Steps",eLam:"‖Ax‖/‖x‖",eLamX:"Largest eigenvalue λ",eCh:"Change in the last step",
+ dirH:"From undirected to directed: why PageRank needs more",
+ dirP:"On the Web, links have directions, and a page’s importance should come from the pages that link <i>to</i> it. Using the directed adjacency matrix in the same recipe runs into trouble: a page that nobody links to gets zero, so its links pass on nothing; pages without outgoing links swallow importance; and a page with many outgoing links would hand its full weight to every one of them. PageRank fixes all three. Each page splits its importance equally among its outgoing links, and a small amount of every page’s importance is spread over all pages.",
+ quote:"“Math professors love us because Google has made eigenvectors relevant to every matrix algebra student in America.”",
+ quoteBy:"Marissa Mayer, a former spokesperson of Google",
+ h2:"The random surfer",
+ p2a:"Imagine a Web user who keeps clicking. With probability 1 − <i>α</i> the user follows a random link on the current page; with probability <i>α</i> the user jumps to a page chosen at random among all <i>N</i> pages. The PageRank <i>R</i>(<i>i</i>) of a page is the fraction of time the surfer spends on it in the long run. <i>α</i> is called the <b>teleportation factor</b>, typically <i>α</i> ≈ 0.15; 1 − <i>α</i> is the <b>damping factor</b>.",
+ prLegend:"The first term is teleportation to <i>i</i>, one of <i>N</i> possible targets of a jump. The second term is arriving through a link: the sum runs over the predecessors of <i>i</i> (the pages that link to <i>i</i>), and each of them, <i>j</i>, splits its PageRank equally among its <i>k</i><sub>out</sub>(<i>j</i>) outgoing links.",
+ p2b:"Let the surfer loose on a small Web of ten pages. Page 5 has no outgoing links, so from there the surfer always jumps. The fraction of visits (orange bars) creeps toward the PageRank (black ticks), but slowly: the error shrinks only like one over the square root of the number of clicks.",
+ sCap:"Node size shows the PageRank. The red ring is the surfer; a red arrow is a followed link and a dashed purple arrow is a random jump. The teal node has no outgoing links.",
+ alphaLbl:"Teleportation factor α",speed:"Speed",spd1:"Slow",spd2:"Fast",spd3:"Very fast",play:"Play",pause:"Pause",sStep:"One click",sReset:"Reset",
+ sSteps:"Clicks so far",sErr:"Σ |visit fraction − <i>R</i>(<i>i</i>)|",
+ sLog0:"The surfer starts on page {i}.",
+ sLogLink:"From page {i} the surfer followed a link to page {j} (probability {b} of following a link).",
+ sLogTele:"From page {i} the surfer jumped at random to page {j} (probability {a} of a jump).",
+ sLogDang:"Page {i} has no outgoing links, so the surfer jumped at random to page {j}.",
+ sBarsCap:"Orange: fraction of visits to each page. Black ticks: PageRank.",
+ h3:"The power method",
+ p3a:"Simulating the surfer is slow. PageRank is instead computed with the <b>power method</b>: start from <i>R</i><sub>0</sub>(<i>i</i>) = 1/<i>N</i> and apply the equation above to every node at once, again and again, until nothing changes. Note the recursive definition: the PageRank of a page depends on that of its neighbors. PageRank is a conserved quantity, Σ<sub><i>i</i></sub> <i>R</i>(<i>i</i>) = 1, flowing from one page to its neighbors through links, so it cannot be created or destroyed. For <i>α</i> &gt; 0 teleportation connects all nodes virtually, which guarantees convergence, and quickly: in less than 100 steps or so, even in very large networks.",
+ pCap:"Node size shows the current <i>R</i><sub><i>t</i></sub>. Click a page to see how its value is put together; the dark arrows are its incoming links.",
+ pStep:"One step",pRun:"Run to convergence",pReset:"Reset to 1/N",
+ pT:"Step t",pSum:"Σ R(i)",pD:"Σ |<i>R</i><sub><i>t</i></sub> − <i>R</i><sub><i>t</i>−1</sub>|",pErr:"Σ |<i>R</i><sub><i>t</i></sub> − <i>R</i><sub>exact</sub>|",
+ pEqHead:"Step {t}, page {i}, from the values of step {t} − 1:",
+ pEqHead0:"Page {i} at the start, <i>R</i><sub>0</sub> = 1/<i>N</i>. The next step will give:",
+ noIn:"This page has no incoming links.",
+ pEqIn:"The terms are {l}.",
+ pEqDang:"The last term is the PageRank of the dead end, page {d}, spread over all ten pages.",
+ pBarsCap:"Blue: <i>R</i><sub><i>t</i></sub>. Black ticks: the converged PageRank.",
+ pConvCap:"How fast the power method converges: Σ<sub><i>i</i></sub> |<i>R</i><sub><i>t</i></sub>(<i>i</i>) − <i>R</i><sub><i>t</i>−1</sub>(<i>i</i>)| on a log scale. The change shrinks at least as fast as (1 − <i>α</i>)<sup><i>t</i></sup> (dashed), so a small <i>α</i> means slow convergence. Try <i>α</i> = 0.",
+ convX:"step t",convRef:"dashed: ∝ {b}ᵗ",
+ dangH:"Pages without outgoing links",
+ dangP:"Page 5 is a dead end: its PageRank would flow nowhere and leak out of the total. The usual convention, also used by NetworkX, is to treat such a page as if it linked to every page, so its PageRank is spread over all <i>N</i> pages (the extra term in the equation under the figure). With <i>α</i> = 0 and no dead ends, the power method can fail to converge or can get stuck in groups of pages that only link to each other; teleportation removes both problems.",
+ h4:"Why not just count incoming links?",
+ p4a:"The distribution of PageRank on the Web is quite similar to the distribution of in-degree. Why not just use the in-degree, then? Because not all links are equal. Links from pages that are themselves visited often give a larger boost: would you rather have a link to your page from a famous site or from a page nobody reads? In the ten-page Web, pages 0 and 7 both have five incoming links, but the links to page 0 bring in much more. Page 6 has a single incoming link, from page 0, and that is enough to place it near the top.",
+ farmLbl:"Link farm pages pointing to page 1",
+ fTabCap:"The ten original pages sorted by PageRank. The farm pages are not listed but keep part of the total.",
+ thPage:"Page",thKin:"<i>k</i><sub>in</sub>",thPR:"PageRank",thRank:"Rank",
+ fCap0:"Pages 0 and 7 have the same in-degree, 5, but PageRanks {r0} and {r7}. Page 6, with one incoming link, has {r6}.",
+ fCapFarm:"{n} fake pages (orange) link to page 1, which links back to them. Page 1 jumps to rank {r} with PageRank {v}, while the farm pages themselves hold {s}.",
+ p4b:"PageRank is not immune to manipulation, though. Some Web sites try to obtain a higher ranking with methods of which search engines disapprove, often called “spamdexing”. A frequent approach is a <b>link farm</b>: a large set of fictitious Web sites that link to each other and to a target site. Drag the slider: six fake pages are enough to lift page 1, which nobody linked to, past every honest page. Search engines employ sophisticated network algorithms to detect link farms and other spamdexing attacks, and may remove such a site from the index.",
+ h5:"PageRank on a large Web-like network",
+ p5a:"The cumulative distribution of PageRank in the Web host graph is a straight line on a log–log plot over many decades, close to the distribution of in-degree. Here is the same measurement on a synthetic network of 3000 pages grown by directed preferential attachment (Price’s model): each new page links to three older pages, chosen with probability proportional to their in-degree plus one.",
+ wCcdfCap:"Cumulative distribution: the fraction of pages whose PageRank is at least <i>R</i> (purple). Dashed: the same for the share of all links that point to a page, <i>k</i><sub>in</sub>/<i>L</i>. PageRank values add up to one.",
+ wNew:"New network",wN:"Pages / links",wDang:"Pages without outgoing links",wMax:"Largest PageRank",wOv:"Top 10 shared by <i>k</i><sub>in</sub> and PageRank",wR:"Correlation of log <i>R</i> and log(<i>k</i><sub>in</sub> + 1)",
+ wScCap:"Each dot is a page: PageRank against in-degree. They are strongly correlated but not the same: at the same in-degree, PageRank varies by a factor of a few, depending on who links to them.",
+ wX:"PageRank R",wY:"fraction of pages with PageRank ≥ R",wLegPR:"PageRank",wLegK:"kᵢₙ / L",wScX:"kᵢₙ + 1",wScY:"PageRank",
+ h6:"In code",
+ p6a:"NetworkX runs the PageRank algorithm on a directed network and returns a dictionary with the PageRank values of its nodes. Here is the ten-page Web from sections 2–4. One warning about conventions: in NetworkX, <code>alpha</code> is the <i>damping</i> factor, with default 0.85, which is 1 − <i>α</i> in the textbook’s notation. Pages without outgoing links are spread over all pages, as in this demo.",
+ p6b:"<code>nx.pagerank</code> uses the power method with a tolerance of 10<sup>−6</sup> by default. Its <code>personalization</code> argument makes the random jumps land on some pages more than others, which gives a “personalized PageRank”.",
+ foot1:"Created by Claude Opus 5.5, based on the lecture slides by Prof. Sang Hoon Lee. Part of the <a href=\"https://lshlj82.github.io/netsci-course-GNU/\">interactive demos</a> for <i>Network Science</i> (네트워크 과학), Department of Physics, Gyeongsang National University.",
+ foot2:"S. Brin and L. Page, “The anatomy of a large-scale hypertextual Web search engine,” <i>Computer Networks and ISDN Systems</i> <b>30</b>, 107 (1998). F. Menczer, S. Fortunato, and C. A. Davis, <i>A First Course in Network Science</i> (Cambridge University Press, 2020), Box 4.2. D. J. de S. Price, <i>J. Am. Soc. Inf. Sci.</i> <b>27</b>, 292 (1976).",
+ themeL:"Switch to light mode",themeD:"Switch to dark mode"
+},
+ko:{
+ back:"← Network Science: interactive demos · 네트워크 과학 교과목 보조자료",
+ title:"페이지랭크",
+ sub:"<i>네트워크 과학</i> 인터랙티브 데모 10. 고유 벡터 중심도에서 구글의 바탕이 된 ‘무작위 서퍼’까지: 중요도가 링크를 따라 흘러가는 모습을 보고, 거듭제곱법으로 계산해 보고, 들어오는 링크 수만 세서는 왜 충분하지 않은지 확인합니다.",
+ credit:"이상훈 교수의 강의 슬라이드를 바탕으로 Claude Opus 5.5가 만들었습니다.",
+ h1:"중요한 이웃에게서 오는 중요도",
+ p1a:"1998년 세르게이 브린과 래리 페이지는 웹 페이지 사이의 링크 구조로 순위를 매기는 검색 엔진 시제품 구글을 발표했습니다. <b>페이지랭크(PageRank)</b>라는 이름에는 웹 ‘<i>페이지</i>’의 순위를 매긴다는 뜻과 래리 ‘<i>페이지</i>’의 순위라는 뜻이 함께 들어 있습니다. 출발점은 <b>고유 벡터 중심도</b>입니다. 노드 <i>i</i>의 중요도는 이웃들의 중요도의 합에 비례한다고 가정합니다.",
+ eigLegend:"<i>ν</i>(<i>i</i>)는 <i>i</i>의 이웃 집합이고 <i>a</i><sub><i>ij</i></sub>는 인접 행렬 <b>A</b>의 성분입니다. 정의가 재귀적이지만, 우리에게는 선형대수라는 멋진 도구가 있습니다. (어떤 상수) <b>x</b> = <b>A</b><b>x</b>는 <b>A</b>의 고유 벡터 방정식이고, 그 해 <b>x</b> = (<i>x</i><sub>1</sub>, …, <i>x</i><sub><i>N</i></sub>)가 각 노드의 고유 벡터 중심도입니다.",
+ p1b:"이 방정식을 푸는 한 가지 방법은 정의를 그대로 따라가는 것입니다. 모든 노드의 중요도를 같게 놓고 시작해서, 각 <i>x</i><sub><i>i</i></sub>를 이웃들의 합으로 바꾸고, 크기를 다시 맞추기를 되풀이합니다. 그러면 벡터가 가장 큰 고윳값 <i>λ</i>의 고유 벡터로 수렴합니다. 이 네트워크에서 링크가 가장 많은 노드는 5이지만 이웃이 대부분 중요하지 않은 잎 노드인 반면, 노드 0–3은 서로 촘촘히 연결된 집단에 있습니다.",
+ eCap0:"노드의 크기와 색의 진하기가 <i>x</i><sub><i>i</i></sub>입니다(가장 큰 값이 1이 되도록 맞춤). 노드를 클릭하면 그 노드가 더하는 이웃을 볼 수 있습니다.",
+ eCapSel:"노드 {i}는 이웃 {nb}의 값을 더합니다. 지금 그 합은 {s}입니다(크기 맞추기 전).",
+ eBarsCap:"회색: 연결선 수 <i>k</i><sub><i>i</i></sub>/<i>k</i><sub>max</sub>. 파랑: 고유 벡터 중심도 <i>x</i><sub><i>i</i></sub>/<i>x</i><sub>max</sub>.",
+ eStep:"한 단계: x ← Ax",eRun:"20단계",eRand:"무작위로 시작",eReset:"처음으로",
+ eT:"단계",eLam:"‖Ax‖/‖x‖",eLamX:"가장 큰 고윳값 λ",eCh:"마지막 단계의 변화",
+ dirH:"방향 없는 네트워크에서 방향 있는 네트워크로: 페이지랭크가 더 필요한 이유",
+ dirP:"웹의 링크에는 방향이 있고, 페이지의 중요도는 그 페이지<i>로</i> 링크하는 페이지에서 와야 합니다. 방향 있는 인접 행렬로 같은 방법을 쓰면 문제가 생깁니다. 아무도 링크하지 않은 페이지는 0이 되어 그 링크로 아무것도 전하지 못하고, 나가는 링크가 없는 페이지는 중요도를 삼켜 버리며, 나가는 링크가 많은 페이지는 링크마다 자기 중요도 전체를 넘겨주게 됩니다. 페이지랭크는 이 세 가지를 모두 해결합니다. 각 페이지는 자기 중요도를 나가는 링크에 똑같이 나눠 주고, 모든 페이지의 중요도 가운데 일부는 전체 페이지에 고르게 퍼집니다.",
+ quote:"“Math professors love us because Google has made eigenvectors relevant to every matrix algebra student in America.”",
+ quoteBy:"마리사 메이어, 전 구글 대변인 (“수학 교수들은 우리를 좋아합니다. 구글 덕분에 미국의 모든 행렬대수 수강생에게 고유 벡터가 중요해졌으니까요.”)",
+ h2:"무작위 서퍼",
+ p2a:"계속 클릭만 하는 웹 사용자를 상상해 봅시다. 확률 1 − <i>α</i>로 지금 페이지의 링크 하나를 무작위로 따라가고, 확률 <i>α</i>로 전체 <i>N</i>개 페이지 가운데 하나로 무작위로 건너뜁니다. 한 페이지의 페이지랭크 <i>R</i>(<i>i</i>)는 오랜 시간 동안 서퍼가 그 페이지에 머무는 시간의 비율입니다. <i>α</i>를 <b>순간 이동 인자(teleportation factor)</b>라고 하며 보통 <i>α</i> ≈ 0.15로 둡니다. 1 − <i>α</i>는 <b>감쇠 인자(damping factor)</b>라고 합니다.",
+ prLegend:"첫째 항은 <i>i</i>로 순간 이동하는 경우로, <i>i</i>는 건너뛸 수 있는 <i>N</i>개 목적지 가운데 하나입니다. 둘째 항은 링크를 따라 도착하는 경우입니다. 합은 <i>i</i>의 선행 노드(<i>i</i>로 링크하는 페이지)에 대해 더하며, 각 선행 노드 <i>j</i>는 자기 페이지랭크를 <i>k</i><sub>out</sub>(<i>j</i>)개의 나가는 링크에 똑같이 나눠 줍니다.",
+ p2b:"페이지 열 개로 된 작은 웹에 서퍼를 풀어 봅시다. 페이지 5에는 나가는 링크가 없어서 거기서는 항상 무작위로 건너뜁니다. 방문 비율(주황 막대)이 페이지랭크(검은 눈금)에 다가가지만 느립니다. 오차는 클릭 수의 제곱근에 반비례해서만 줄어듭니다.",
+ sCap:"노드의 크기가 페이지랭크입니다. 빨간 고리가 서퍼이고, 빨간 화살표는 따라간 링크, 보라색 점선 화살표는 무작위 이동입니다. 청록색 노드에는 나가는 링크가 없습니다.",
+ alphaLbl:"순간 이동 인자 α",speed:"속도",spd1:"느리게",spd2:"빠르게",spd3:"아주 빠르게",play:"재생",pause:"멈춤",sStep:"한 번 클릭",sReset:"처음으로",
+ sSteps:"지금까지 클릭 수",sErr:"Σ |방문 비율 − <i>R</i>(<i>i</i>)|",
+ sLog0:"서퍼가 페이지 {i}에서 출발합니다.",
+ sLogLink:"서퍼가 페이지 {i}에서 링크를 따라 페이지 {j}로 갔습니다(링크를 따라갈 확률 {b}).",
+ sLogTele:"서퍼가 페이지 {i}에서 무작위로 페이지 {j}로 건너뛰었습니다(건너뛸 확률 {a}).",
+ sLogDang:"페이지 {i}에는 나가는 링크가 없어서 서퍼가 무작위로 페이지 {j}로 건너뛰었습니다.",
+ sBarsCap:"주황: 각 페이지의 방문 비율. 검은 눈금: 페이지랭크.",
+ h3:"거듭제곱법",
+ p3a:"서퍼를 직접 시뮬레이션하면 느립니다. 그래서 페이지랭크는 <b>거듭제곱법(power method)</b>으로 계산합니다. <i>R</i><sub>0</sub>(<i>i</i>) = 1/<i>N</i>에서 시작해 위 식을 모든 노드에 한꺼번에 적용하기를 값이 더는 변하지 않을 때까지 되풀이합니다. 정의가 재귀적이라는 점에 주목하세요. 한 페이지의 페이지랭크는 이웃의 페이지랭크에 달려 있습니다. 페이지랭크는 보존되는 양이어서(Σ<sub><i>i</i></sub> <i>R</i>(<i>i</i>) = 1) 링크를 따라 이웃으로 흘러갈 뿐 새로 생기거나 사라지지 않습니다. <i>α</i> &gt; 0이면 순간 이동이 모든 노드를 사실상 연결하므로 반드시 수렴하고, 아주 큰 네트워크에서도 대략 100단계 안에 빠르게 수렴합니다.",
+ pCap:"노드의 크기가 지금의 <i>R</i><sub><i>t</i></sub>입니다. 페이지를 클릭하면 그 값이 어떻게 계산되는지 볼 수 있고, 진한 화살표가 그 페이지로 들어오는 링크입니다.",
+ pStep:"한 단계",pRun:"수렴할 때까지",pReset:"1/N으로 되돌리기",
+ pT:"단계 t",pSum:"Σ R(i)",pD:"Σ |<i>R</i><sub><i>t</i></sub> − <i>R</i><sub><i>t</i>−1</sub>|",pErr:"Σ |<i>R</i><sub><i>t</i></sub> − <i>R</i><sub>exact</sub>|",
+ pEqHead:"{t}단계, 페이지 {i}: {t} − 1단계의 값으로 계산",
+ pEqHead0:"처음 페이지 {i}의 값은 <i>R</i><sub>0</sub> = 1/<i>N</i>입니다. 다음 단계에서는 이렇게 됩니다.",
+ noIn:"이 페이지로 들어오는 링크는 없습니다.",
+ pEqIn:"괄호 안의 항은 차례로 {l}입니다.",
+ pEqDang:"마지막 항은 막다른 페이지 {d}의 페이지랭크를 열 개 페이지 전체에 나눈 몫입니다.",
+ pBarsCap:"파랑: <i>R</i><sub><i>t</i></sub>. 검은 눈금: 수렴한 페이지랭크.",
+ pConvCap:"거듭제곱법이 수렴하는 빠르기: Σ<sub><i>i</i></sub> |<i>R</i><sub><i>t</i></sub>(<i>i</i>) − <i>R</i><sub><i>t</i>−1</sub>(<i>i</i>)|를 로그 눈금으로 그렸습니다. 변화량은 적어도 (1 − <i>α</i>)<sup><i>t</i></sup>(점선)만큼 빠르게 줄어들므로, <i>α</i>가 작으면 수렴이 느립니다. <i>α</i> = 0도 해 보세요.",
+ convX:"단계 t",convRef:"점선: ∝ {b}ᵗ",
+ dangH:"나가는 링크가 없는 페이지",
+ dangP:"페이지 5는 막다른 곳입니다. 그대로 두면 이 페이지의 페이지랭크는 갈 곳이 없어 전체 합에서 새어 나갑니다. 흔히 쓰는 방법은(NetworkX도 같습니다) 이런 페이지가 모든 페이지로 링크한다고 보고 그 페이지랭크를 <i>N</i>개 페이지 전체에 고르게 나누는 것입니다(그림 아래 식의 추가 항). <i>α</i> = 0이면 막다른 페이지가 없더라도 거듭제곱법이 수렴하지 않거나, 서로만 링크하는 페이지 무리에 갇힐 수 있습니다. 순간 이동이 두 문제를 모두 없앱니다.",
+ h4:"들어오는 링크 수만 세면 안 될까?",
+ p4a:"웹에서 페이지랭크의 분포는 들어오는 연결선 수(in-degree)의 분포와 꽤 비슷합니다. 그렇다면 그냥 들어오는 링크 수를 쓰면 되지 않을까요? 모든 링크가 같지는 않기 때문입니다. 자주 방문되는 페이지에서 오는 링크일수록 더 크게 올려 줍니다. 유명한 사이트의 링크와 아무도 읽지 않는 페이지의 링크 가운데 어느 쪽을 받고 싶은가요? 페이지 열 개짜리 웹에서 페이지 0과 7은 모두 들어오는 링크가 다섯 개지만, 페이지 0으로 오는 링크가 훨씬 많은 것을 가져옵니다. 페이지 6은 페이지 0에서 오는 링크 하나뿐인데도 상위권에 오릅니다.",
+ farmLbl:"페이지 1로 링크하는 링크 농장 페이지 수",
+ fTabCap:"원래의 페이지 열 개를 페이지랭크 순으로 정렬했습니다. 농장 페이지는 표에 없지만 전체 합의 일부를 가집니다.",
+ thPage:"페이지",thKin:"<i>k</i><sub>in</sub>",thPR:"페이지랭크",thRank:"순위",
+ fCap0:"페이지 0과 7은 들어오는 링크 수가 5로 같지만 페이지랭크는 {r0}과 {r7}입니다. 들어오는 링크가 하나인 페이지 6은 {r6}입니다.",
+ fCapFarm:"가짜 페이지 {n}개(주황)가 페이지 1로 링크하고, 페이지 1은 그 페이지들로 되돌려 링크합니다. 페이지 1은 페이지랭크 {v}로 {r}위까지 오르고, 농장 페이지들은 합쳐서 {s}를 가집니다.",
+ p4b:"그렇다고 페이지랭크가 조작에서 자유로운 것은 아닙니다. 어떤 웹 사이트는 검색 엔진이 인정하지 않는 방법으로 순위를 올리려 하는데, 이를 흔히 ‘스팸덱싱(spamdexing)’이라고 합니다. 자주 쓰이는 방법이 <b>링크 농장(link farm)</b>으로, 서로 링크하고 대상 사이트로 링크하는 가짜 웹 사이트를 잔뜩 만드는 것입니다. 조절 막대를 움직여 보세요. 아무도 링크하지 않던 페이지 1이 가짜 페이지 여섯 개만으로 정직한 페이지들을 모두 제칩니다. 검색 엔진은 정교한 네트워크 알고리즘으로 링크 농장과 같은 스팸덱싱 공격을 찾아내며, 이런 사이트를 검색 색인에서 지우기도 합니다.",
+ h5:"큰 웹 같은 네트워크의 페이지랭크",
+ p5a:"웹 호스트 그래프에서 페이지랭크의 누적 분포는 로그–로그 그래프에서 여러 자릿수에 걸쳐 직선이며, 들어오는 연결선 수의 분포와 비슷합니다. 여기서는 방향 있는 선호적 연결(프라이스 모형)로 키운 페이지 3000개짜리 합성 네트워크에서 같은 측정을 합니다. 새 페이지는 기존 페이지 세 개로 링크하며, 각 페이지가 선택될 확률은 들어오는 연결선 수에 1을 더한 값에 비례합니다.",
+ wCcdfCap:"누적 분포: 페이지랭크가 <i>R</i> 이상인 페이지의 비율(보라). 점선: 전체 링크 가운데 그 페이지를 가리키는 비율 <i>k</i><sub>in</sub>/<i>L</i>에 대한 같은 분포. 페이지랭크 값의 합은 1입니다.",
+ wNew:"새 네트워크",wN:"페이지 / 링크",wDang:"나가는 링크가 없는 페이지",wMax:"가장 큰 페이지랭크",wOv:"<i>k</i><sub>in</sub>과 페이지랭크 상위 10개 중 공통",wR:"log <i>R</i>과 log(<i>k</i><sub>in</sub> + 1)의 상관 계수",
+ wScCap:"점 하나가 페이지 하나입니다(들어오는 연결선 수에 대한 페이지랭크). 둘은 강하게 상관되어 있지만 같지는 않습니다. 들어오는 연결선 수가 같은 페이지도 누가 링크하느냐에 따라 페이지랭크가 몇 배씩 차이 납니다.",
+ wX:"페이지랭크 R",wY:"페이지랭크가 R 이상인 페이지의 비율",wLegPR:"페이지랭크",wLegK:"kᵢₙ / L",wScX:"kᵢₙ + 1",wScY:"페이지랭크",
+ h6:"코드로",
+ p6a:"NetworkX는 방향 있는 네트워크에서 페이지랭크 알고리즘을 실행하고 노드마다 페이지랭크 값을 담은 딕셔너리를 돌려줍니다. 아래는 2–4절의 페이지 열 개짜리 웹입니다. 표기에 주의하세요. NetworkX의 <code>alpha</code>는 <i>감쇠</i> 인자로 기본값이 0.85이며, 교과서 표기로는 1 − <i>α</i>입니다. 나가는 링크가 없는 페이지는 이 데모와 마찬가지로 모든 페이지에 고르게 나눕니다.",
+ p6b:"<code>nx.pagerank</code>는 기본적으로 허용 오차 10<sup>−6</sup>의 거듭제곱법을 씁니다. <code>personalization</code> 인자를 주면 무작위 이동이 일부 페이지에 더 자주 떨어지게 할 수 있는데, 이를 ‘개인화된 페이지랭크’라고 합니다.",
+ foot1:"이상훈 교수의 강의 슬라이드를 바탕으로 Claude Opus 5.5가 만들었습니다. 경상국립대학교 물리학과 <i>네트워크 과학</i> 교과목의 <a href=\"https://lshlj82.github.io/netsci-course-GNU/\">인터랙티브 데모</a> 가운데 하나입니다.",
+ foot2:"S. Brin and L. Page, “The anatomy of a large-scale hypertextual Web search engine,” <i>Computer Networks and ISDN Systems</i> <b>30</b>, 107 (1998). F. Menczer, S. Fortunato, and C. A. Davis, <i>A First Course in Network Science</i> (Cambridge University Press, 2020), Box 4.2; 한국어판 『네트워크 분석』 (에이콘출판사, 2022). D. J. de S. Price, <i>J. Am. Soc. Inf. Sci.</i> <b>27</b>, 292 (1976).",
+ themeL:"밝은 화면으로 전환",themeD:"어두운 화면으로 전환"
+}};
+const lang="ko";
+const t=(k,v)=>{let s=I18N[lang][k]??k;if(v)for(const x in v)s=s.split("{"+x+"}").join(v[x]);return s};
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+function E(tag,a={},p){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function H(tag,a={},p,html){const e=document.createElement(tag);for(const k in a)e.setAttribute(k,a[k]);if(html!=null)e.innerHTML=html;if(p)p.appendChild(e);return e}
+function T(g,x,y,s,a={}){const e=E("text",Object.assign({x,y,"font-size":14},a),g);e.textContent=s;return e}
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const minus=s=>String(s).replace(/-/g,"−");
+const f3=x=>minus((Math.abs(x)<5e-4?0:x).toFixed(3)),f4=x=>minus((Math.abs(x)<5e-5?0:x).toFixed(4));
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let q=Math.imul(a^a>>>15,1|a);q=q+Math.imul(q^q>>>7,61|q)^q;return((q^q>>>14)>>>0)/4294967296}}
+function seg(box,{opts,value,on}){box.innerHTML="";opts.forEach(([v,k])=>{const b=H("button",{type:"button","data-i18n":k,"aria-pressed":String(v===value)},box);
+  b.addEventListener("click",()=>{box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));on(v)})})}
+function readout(box,rows){box.innerHTML="";const o={};rows.forEach(([id,k])=>{H("dt",{"data-i18n":k},box);o[id]=H("dd",{},box)});return o}
+function sci(x){if(!(x>0))return"0";const e=Math.floor(Math.log10(x)),m=x/10**e;return m.toFixed(1)+" × 10"+sup(e)}
+function sup(n){return String(n).replace(/-/g,"⁻").replace(/\d/g,d=>"⁰¹²³⁴⁵⁶⁷⁸⁹"[d])}
+
+/* ============ generic drawing ============ */
+// arrowhead polygon at (x,y) pointing along (ux,uy)
+function head(g,x,y,ux,uy,col,s=9){E("polygon",{points:`${x},${y} ${x-ux*s-uy*s*.5},${y-uy*s+ux*s*.5} ${x-ux*s+uy*s*.5},${y-uy*s-ux*s*.5}`,fill:col},g)}
+// directed edge a→b between circles; curved if bend≠0
+function dEdge(g,A,B,ra,rb,col,w,bend=0,dash=""){const dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux;
+  if(!bend){const x1=A[0]+ux*ra,y1=A[1]+uy*ra,x2=B[0]-ux*(rb+2),y2=B[1]-uy*(rb+2);
+    E("line",{x1,y1,x2:x2-ux*6,y2:y2-uy*6,stroke:col,"stroke-width":w,"stroke-dasharray":dash},g);head(g,x2,y2,ux,uy,col,8+w);return}
+  const cx=(A[0]+B[0])/2+nx*bend,cy=(A[1]+B[1])/2+ny*bend;
+  const sa=Math.atan2(cy-A[1],cx-A[0]),eb=Math.atan2(cy-B[1],cx-B[0]);
+  const x1=A[0]+Math.cos(sa)*ra,y1=A[1]+Math.sin(sa)*ra,x2=B[0]+Math.cos(eb)*(rb+2),y2=B[1]+Math.sin(eb)*(rb+2);
+  const tx=x2-cx,ty=y2-cy,tl=Math.hypot(tx,ty)||1;
+  E("path",{d:`M${x1},${y1} Q${cx},${cy} ${x2-tx/tl*6},${y2-ty/tl*6}`,fill:"none",stroke:col,"stroke-width":w,"stroke-dasharray":dash},g);head(g,x2,y2,tx/tl,ty/tl,col,8+w)}
+// horizontal-axis bar chart; series = [{vals,color,op}], marks = optional reference ticks
+function bars(svg,labels,series,{ymax,marks=null,markCol="var(--ink)",hi=-1,yl=""}={}){svg.innerHTML="";const W=400,Hh=230,L=40,R=8,Tp=12,B=36;
+  const n=labels.length,gw=(W-L-R)/n,ns=series.length,bw=Math.min(22,gw*.8/ns);
+  const Y=v=>Hh-B-(v/ymax)*(Hh-Tp-B);
+  const step=ymax/4;for(let k=0;k<=4;k++){const v=k*step,y=Y(v);E("line",{x1:L,x2:W-R,y1:y,y2:y,stroke:"var(--rule)","stroke-width":1},svg);T(svg,L-5,y+4,+v.toFixed(3)+"",{"text-anchor":"end","font-size":11,fill:"var(--muted)"})}
+  labels.forEach((lb,i)=>{const x0=L+i*gw+(gw-bw*ns)/2;
+    if(i===hi)E("rect",{x:L+i*gw+1,y:Tp,width:gw-2,height:Hh-Tp-B,fill:"var(--marker)",opacity:.08},svg);
+    series.forEach((s,k)=>{const v=s.vals[i];E("rect",{x:x0+k*bw,y:Y(Math.min(v,ymax)),width:bw-1,height:Math.max(0,Y(0)-Y(Math.min(v,ymax))),fill:s.color,opacity:s.op??1,rx:1.5},svg)});
+    if(marks){const y=Y(Math.min(marks[i],ymax));E("line",{x1:x0-3,x2:x0+bw*ns+2,y1:y,y2:y,stroke:markCol,"stroke-width":2.5},svg)}
+    T(svg,L+i*gw+gw/2,Hh-B+16,lb,{"text-anchor":"middle","font-size":12,"font-weight":i===hi?700:400,fill:i===hi?"var(--marker)":"var(--muted)"})});
+  if(yl)T(svg,L,Hh-6,yl,{"font-size":11.5,fill:"var(--muted)"})}
+
+/* ============ PageRank ============ */
+function digraph(n,edges){const out=Array(n).fill(0),pred=Array.from({length:n},()=>[]);for(const[a,b]of edges){out[a]++;pred[b].push(a)}return{n,edges,out,pred}}
+function prStep(G,R,a){const n=G.n;let d=0;for(let i=0;i<n;i++)if(!G.out[i])d+=R[i];const nr=new Float64Array(n).fill(a/n+(1-a)*d/n);
+  for(const[s,u]of G.edges)nr[u]+=(1-a)*R[s]/G.out[s];return nr}
+function pagerank(G,a,tol=1e-13){let R=new Float64Array(G.n).fill(1/G.n);for(let k=0;k<5000;k++){const nr=prStep(G,R,a);let e=0;for(let i=0;i<G.n;i++)e+=Math.abs(nr[i]-R[i]);R=nr;if(e<tol)break}return R}
+const l1=(a,b)=>{let e=0;for(let i=0;i<a.length;i++)e+=Math.abs(a[i]-b[i]);return e};
+
+/* ============ section 1: eigenvector centrality ============ */
+const EN=12,EE=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3],[0,4],[1,4],[4,5],[5,6],[5,7],[5,8],[5,9],[5,10],[3,11],[2,11]];
+const EP=[[190,125],[190,295],[90,115],[90,305],[275,210],[385,210]];
+[-72,-36,0,36,72].forEach(d=>{const r=d*Math.PI/180;EP.push([385+100*Math.cos(r),210+100*Math.sin(r)])});EP.push([28,210]);
+const EA=Array.from({length:EN},()=>[]);EE.forEach(([a,b])=>{EA[a].push(b);EA[b].push(a)});
+const EDEG=EA.map(x=>x.length),EKMAX=Math.max(...EDEG);
+const EIG=(()=>{let x=Array(EN).fill(1),lam=0;for(let k=0;k<2000;k++){const y=x.map((_,i)=>EA[i].reduce((s,j)=>s+x[j],0)),n=Math.hypot(...y);lam=n/Math.hypot(...x);x=y.map(v=>v/n)}const m=Math.max(...x);return{x:x.map(v=>v/m),lam}})();
+const ES={x:null,t:0,lam:null,sel:-1};
+function eReset(rand=false){const r=mulberry(Date.now()%100000);ES.x=Array.from({length:EN},()=>rand?0.05+r():1);const m=Math.max(...ES.x);ES.x=ES.x.map(v=>v/m);ES.t=0;ES.lam=null;ES.prev=null;drawE()}
+function eStep(){const y=ES.x.map((_,i)=>EA[i].reduce((s,j)=>s+ES.x[j],0));ES.lam=Math.hypot(...y)/Math.hypot(...ES.x);const m=Math.max(...y);ES.prev=ES.x;ES.x=y.map(v=>v/m);ES.t++}
+function drawE(){const g=$("#eNet");g.innerHTML="";const x=ES.x;
+  for(const[a,b]of EE){const on=ES.sel>=0&&(a===ES.sel||b===ES.sel);E("line",{x1:EP[a][0],y1:EP[a][1],x2:EP[b][0],y2:EP[b][1],stroke:on?"var(--ink)":"var(--edge)","stroke-width":on?3:2},g)}
+  EP.forEach(([px,py],i)=>{const r=7+24*Math.sqrt(Math.max(0,x[i]));if(i===ES.sel)E("circle",{cx:px,cy:py,r:r+6,fill:"none",stroke:"var(--marker)","stroke-width":3.5},g);
+    const c=E("circle",{cx:px,cy:py,r,fill:"var(--link)","fill-opacity":0.25+0.75*x[i],stroke:"var(--panel)","stroke-width":2},g);
+    T(g,px,py+5,String(i),{"text-anchor":"middle","font-size":13,"font-weight":600,fill:x[i]>0.45?"#fff":"var(--ink)",style:"pointer-events:none"});
+    T(g,px,py-r-5,x[i].toFixed(2),{"text-anchor":"middle","font-size":11.5,fill:"var(--muted)",stroke:"var(--panel)","stroke-width":4,"paint-order":"stroke",style:"pointer-events:none"});
+    c.addEventListener("click",()=>{ES.sel=ES.sel===i?-1:i;drawE()})});
+  $("#eCap").innerHTML=ES.sel<0?t("eCap0"):t("eCapSel",{i:ES.sel,nb:EA[ES.sel].join(", "),s:f3(EA[ES.sel].reduce((s,j)=>s+(ES.prev||ES.x)[j],0))});
+  ES.ro.t.textContent=ES.t;ES.ro.lam.textContent=ES.lam==null?"–":f4(ES.lam);ES.ro.lamx.textContent=f4(EIG.lam);
+  ES.ro.ch.textContent=ES.prev?sci(l1(ES.prev,ES.x)):"–";
+  bars($("#eBars"),EP.map((_,i)=>String(i)),[{vals:EDEG.map(k=>k/EKMAX),color:"var(--none)"},{vals:x,color:"var(--link)"}],{ymax:1,hi:ES.sel})}
+
+/* ============ the directed example (sections 2–4) ============ */
+const DB=[[1,0],[1,7],[2,0],[2,7],[3,0],[3,7],[4,0],[8,7],[9,7],[0,6],[6,0],[6,5],[7,4]];
+const DP=[[320,230],[200,130],[120,250],[240,360],[320,452],[475,115],[470,305],[95,400],[40,310],[205,470]];
+const FT=1;   // the link-farm target: page 1, which no page links to
+function farmPos(k,n){const a0=150,a1=290,ang=(n<2?220:a0+(a1-a0)*k/(n-1))*Math.PI/180;return[DP[FT][0]+105*Math.cos(ang),DP[FT][1]-105*Math.sin(ang)]}
+function farmGraph(nf){const e=DB.slice();for(let k=0;k<nf;k++){e.push([10+k,FT]);e.push([FT,10+k])}return{G:digraph(10+nf,e),pos:DP.concat(Array.from({length:nf},(_,k)=>farmPos(k,nf)))}}
+const rad=R=>8+56*Math.sqrt(R);
+function drawDi(svg,G,pos,R,{hi=-1,hiEdge=null,tele=null,sel=-1,farm=0,onClick=null,showVal=true}={}){svg.innerHTML="";
+  const set=new Set(G.edges.map(([a,b])=>a+","+b));const gE=E("g",{},svg);
+  for(const[a,b]of G.edges){const rec=set.has(b+","+a),on=hiEdge&&hiEdge[0]===a&&hiEdge[1]===b,inSel=sel>=0&&b===sel;
+    dEdge(gE,pos[a],pos[b],rad(R[a]),rad(R[b]),on?"var(--marker)":inSel?"var(--ink)":(a>=10||b>=10)?"var(--c4)":"var(--edge)",on||inSel?2.8:1.8,rec?16:0)}
+  if(tele){const[a,b]=tele;dEdge(gE,pos[a],pos[b],rad(R[a]),rad(R[b]),"var(--c5)",2.2,a===b?0:60,"5 5")}
+  pos.forEach(([x,y],i)=>{const r=rad(R[i]);if(i===hi||i===sel)E("circle",{cx:x,cy:y,r:r+6,fill:"none",stroke:"var(--marker)","stroke-width":i===hi?4:3,"stroke-dasharray":i===sel&&i!==hi?"5 3":""},svg);
+    const c=E("circle",{cx:x,cy:y,r,fill:i>=10?"var(--c4)":G.out[i]?"var(--link)":"var(--c3)",stroke:"var(--panel)","stroke-width":2.5},svg);
+    T(svg,x,y+5,i>=10?"s":String(i),{"text-anchor":"middle","font-size":13,"font-weight":600,fill:"#fff",style:"pointer-events:none"});
+    if(showVal&&i<10)T(svg,x>440?x-r-4:x+r+4,y-r*0.55,f3(R[i]),{"text-anchor":x>440?"end":"start","font-size":12,fill:"var(--muted)",stroke:"var(--panel)","stroke-width":4,"paint-order":"stroke",style:"pointer-events:none"});
+    if(onClick){c.style.cursor="pointer";c.addEventListener("click",()=>onClick(i))}})}
+const DG=digraph(10,DB);
+const LBL=Array.from({length:10},(_,i)=>String(i));
+
+/* ============ section 2: random surfer ============ */
+const SS={a:0.15,cur:0,visits:new Float64Array(10),steps:0,last:null,playing:false,speed:1,raf:0,acc:0,lastT:0,pr:null,rand:mulberry(7)};
+function sReset(){SS.cur=Math.floor(SS.rand()*10);SS.visits.fill(0);SS.visits[SS.cur]=1;SS.steps=0;SS.last=null;SS.pr=pagerank(DG,SS.a);drawS()}
+function sMove(){const i=SS.cur;let j,how;
+  if(!DG.out[i]){j=Math.floor(SS.rand()*10);how="dang"}
+  else if(SS.rand()<SS.a){j=Math.floor(SS.rand()*10);how="tele"}
+  else{const outs=DG.edges.filter(e=>e[0]===i);j=outs[Math.floor(SS.rand()*outs.length)][1];how="link"}
+  SS.last={from:i,to:j,how};SS.cur=j;SS.visits[j]++;SS.steps++}
+function drawS(){const tot=SS.visits.reduce((s,v)=>s+v,0),fr=Array.from(SS.visits,v=>v/tot);const L=SS.last;
+  drawDi($("#sNet"),DG,DP,SS.pr,{hi:SS.cur,hiEdge:L&&L.how==="link"?[L.from,L.to]:null,tele:L&&L.how!=="link"?[L.from,L.to]:null});
+  SS.ro.steps.textContent=SS.steps.toLocaleString();SS.ro.err.textContent=f3(l1(fr,SS.pr));
+  $("#sLog").innerHTML=!L?t("sLog0",{i:SS.cur}):t(L.how==="link"?"sLogLink":L.how==="tele"?"sLogTele":"sLogDang",{i:L.from,j:L.to,a:SS.a,b:+(1-SS.a).toFixed(2)});
+  bars($("#sBars"),LBL,[{vals:fr,color:"var(--c4)"}],{ymax:0.4,marks:Array.from(SS.pr),hi:SS.cur})}
+function sLoop(now){if(!SS.playing)return;const dt=Math.min(0.1,(now-SS.lastT)/1000);SS.lastT=now;SS.acc+=dt*SS.speed;let k=0;while(SS.acc>=1&&k<5000){sMove();SS.acc-=1;k++}if(k)drawS();SS.raf=requestAnimationFrame(sLoop)}
+function sPlay(on){SS.playing=on;$("#sPlay").textContent=t(on?"pause":"play");if(on){SS.lastT=performance.now();SS.acc=0;SS.raf=requestAnimationFrame(sLoop)}else cancelAnimationFrame(SS.raf)}
+
+/* ============ section 3: power method ============ */
+const PS={a:0.15,R:null,prev:null,t:0,sel:0,hist:[]};
+function pReset(){PS.R=new Float64Array(10).fill(0.1);PS.prev=null;PS.t=0;PS.hist=[];PS.exact=pagerank(DG,PS.a);drawP()}
+function pStep(){const nr=prStep(DG,PS.R,PS.a);PS.hist.push(l1(nr,PS.R));PS.prev=PS.R;PS.R=nr;PS.t++}
+function drawP(){drawDi($("#pNet"),DG,DP,PS.R,{sel:PS.sel,onClick:i=>{PS.sel=i;drawP()}});
+  const i=PS.sel,Rp=PS.prev||PS.R,a=PS.a,n=10;
+  const terms=DG.pred[i].map(j=>`${f3(Rp[j])}/${DG.out[j]}`);
+  const dang=[...Array(n).keys()].filter(j=>!DG.out[j]);const dsum=dang.reduce((s,j)=>s+Rp[j],0);
+  const parts=terms.concat(dang.length?[`${f3(dsum)}/10`]:[]);
+  const val=a/n+(1-a)*(DG.pred[i].reduce((s,j)=>s+Rp[j]/DG.out[j],0)+dsum/n);
+  $("#pEq").innerHTML=(PS.prev?t("pEqHead",{t:PS.t,i}):t("pEqHead0",{i}))+"<br><i>R</i>("+i+") = "+(+a.toFixed(2))+"/10 + "+(+(1-a).toFixed(2))+" × ( "+parts.join(" + ")+" ) = <b>"+f3(val)+"</b>"+
+    "<br><span class=\"cap\">"+(DG.pred[i].length?t("pEqIn",{l:DG.pred[i].map(j=>`<i>R</i>(${j})/<i>k</i><sub>out</sub>(${j})`).join(", ")}):t("noIn"))+(dang.length?" "+t("pEqDang",{d:dang.join(", ")}):"")+"</span>";
+  PS.ro.t.textContent=PS.t;PS.ro.sum.textContent=PS.R.reduce((s,v)=>s+v,0).toFixed(6);PS.ro.d.textContent=PS.hist.length?sci(PS.hist[PS.hist.length-1]):"–";
+  PS.ro.err.textContent=sci(l1(PS.R,PS.exact));
+  bars($("#pBars"),LBL,[{vals:Array.from(PS.R),color:"var(--link)"}],{ymax:0.4,marks:Array.from(PS.exact),hi:i});
+  drawConv()}
+function drawConv(){const svg=$("#pConv");svg.innerHTML="";const W=400,Hh=230,L=44,R=10,Tp=12,B=34,tmax=60,lo=-14,hi=0;
+  const X=x=>L+x/tmax*(W-L-R),Y=v=>Tp+(hi-v)/(hi-lo)*(Hh-Tp-B);
+  for(let e=hi;e>=lo;e-=2){E("line",{x1:L,x2:W-R,y1:Y(e),y2:Y(e),stroke:"var(--rule)"},svg);T(svg,L-5,Y(e)+4,e===0?"1":"10"+sup(e),{"text-anchor":"end","font-size":11,fill:"var(--muted)"})}
+  for(let x=0;x<=tmax;x+=10)T(svg,X(x),Hh-B+15,String(x),{"text-anchor":"middle","font-size":11,fill:"var(--muted)"});
+  T(svg,(L+W-R)/2,Hh-4,t("convX"),{"text-anchor":"middle","font-size":11.5,fill:"var(--muted)"});
+  // reference (1−α)^t from the first difference
+  let R0=new Float64Array(10).fill(0.1),full=[];for(let k=0;k<tmax;k++){const nr=prStep(DG,R0,PS.a);full.push(l1(nr,R0));R0=nr}
+  const d0=full[0]||1;const ref=[];for(let k=0;k<tmax;k++)ref.push(d0*Math.pow(1-PS.a,k));
+  const path=(vals,col,w,dash,op=1)=>{let d="",st=false;vals.forEach((v,k)=>{if(!(v>0))return;const y=Y(Math.max(lo,Math.log10(v)));if(Math.log10(v)<lo-0.5)return;d+=(st?"L":"M")+X(k+1).toFixed(1)+","+y.toFixed(1);st=true});if(d)E("path",{d,fill:"none",stroke:col,"stroke-width":w,"stroke-dasharray":dash,opacity:op},svg)};
+  if(PS.a<1)path(ref,"var(--muted)",1.5,"4 4");path(full,"var(--link)",1.6,"",.35);path(PS.hist,"var(--link)",2.8,"");
+  if(PS.hist.length){const k=PS.hist.length,v=PS.hist[k-1];if(v>0)E("circle",{cx:X(k),cy:Y(Math.max(lo,Math.log10(v))),r:4.5,fill:"var(--marker)"},svg)}
+  T(svg,W-R-4,Tp+14,t("convRef",{b:+(1-PS.a).toFixed(2)}),{"text-anchor":"end","font-size":11.5,fill:"var(--muted)"})}
+
+/* ============ section 4: in-degree vs PageRank, link farms ============ */
+const FS={nf:0,a:0.15};
+function drawF(){const{G,pos}=farmGraph(FS.nf),R=pagerank(G,FS.a);drawDi($("#fNet"),G,pos,R,{sel:FS.nf?FT:-1});
+  const kin=Array(G.n).fill(0);G.edges.forEach(([,b])=>kin[b]++);
+  const order=[...Array(10).keys()].sort((x,y)=>R[y]-R[x]||x-y);const rank=[];order.forEach((v,k)=>rank[v]=k+1);
+  const byK=[...Array(10).keys()].sort((x,y)=>kin[y]-kin[x]||x-y);
+  $("#fTab").innerHTML=`<tr><th>${t("thPage")}</th><th>${t("thKin")}</th><th>${t("thPR")}</th><th>${t("thRank")}</th></tr>`+order.map(v=>`<tr class="${FS.nf&&v===FT?"tgt":""}"><td>${v}</td><td>${kin[v]}</td><td>${f3(R[v])}</td><td>${rank[v]}</td></tr>`).join("");
+  const farmShare=R.slice(10).reduce((s,v)=>s+v,0);
+  $("#fCap").innerHTML=FS.nf?t("fCapFarm",{n:FS.nf,r:rank[FT],v:f3(R[FT]),s:f3(farmShare)}):t("fCap0",{r0:f3(R[0]),r7:f3(R[7]),r6:f3(R[6])})}
+
+/* ============ section 5: a large web-like network ============ */
+const WS={a:0.15,seed:3,G:null};
+function priceNet(n,m,seed){const r=mulberry(seed),edges=[],heads=[];
+  for(let v=1;v<n;v++){const k=Math.min(m,v),ch=new Set();let guard=0;
+    while(ch.size<k&&guard++<1000){let u;if(heads.length&&r()<heads.length/(heads.length+v))u=heads[Math.floor(r()*heads.length)];else u=Math.floor(r()*v);ch.add(u)}
+    for(const u of ch){edges.push([v,u]);heads.push(u)}}
+  return digraph(n,edges)}
+function wBuild(){WS.G=priceNet(3000,3,WS.seed);wDraw()}
+function logAxes(svg,W,Hh,L,R,Tp,B,xlo,xhi,ylo,yhi,xl,yl){const X=v=>L+(v-xlo)/(xhi-xlo)*(W-L-R),Y=v=>Tp+(yhi-v)/(yhi-ylo)*(Hh-Tp-B);
+  for(let e=Math.ceil(ylo);e<=yhi;e++){E("line",{x1:L,x2:W-R,y1:Y(e),y2:Y(e),stroke:"var(--rule)"},svg);T(svg,L-5,Y(e)+4,e===0?"1":"10"+sup(e),{"text-anchor":"end","font-size":11,fill:"var(--muted)"})}
+  for(let e=Math.ceil(xlo);e<=xhi;e++){E("line",{x1:X(e),x2:X(e),y1:Tp,y2:Hh-B,stroke:"var(--rule)"},svg);T(svg,X(e),Hh-B+15,e===0?"1":"10"+sup(e),{"text-anchor":"middle","font-size":11,fill:"var(--muted)"})}
+  T(svg,(L+W-R)/2,Hh-5,xl,{"text-anchor":"middle","font-size":12,fill:"var(--muted)"});
+  const g=E("g",{transform:`translate(13,${(Tp+Hh-B)/2}) rotate(-90)`},svg);T(g,0,0,yl,{"text-anchor":"middle","font-size":12,fill:"var(--muted)"});return{X,Y}}
+function wDraw(){const G=WS.G,R=pagerank(G,WS.a,1e-12),n=G.n,kin=Array(n).fill(0);G.edges.forEach(([,b])=>kin[b]++);
+  // CCDF of PageRank and of (k_in + 1)/(N + m N) for comparison: both shown against their own value
+  const s=Array.from(R).sort((x,y)=>y-x);let svg=$("#wCcdf");svg.innerHTML="";
+  const{X,Y}=logAxes(svg,440,320,46,12,12,40,-5,0,-4,0,t("wX"),t("wY"));
+  let d="";s.forEach((v,k)=>{const p=(k+1)/n;d+=(k?"L":"M")+X(Math.log10(v)).toFixed(1)+","+Y(Math.log10(p)).toFixed(1)});E("path",{d,fill:"none",stroke:"var(--c5)","stroke-width":2.4},svg);
+  const kn=kin.map(k=>k/G.edges.length).filter(v=>v>0).sort((x,y)=>y-x);let d2="";kn.forEach((v,k)=>{const p=(k+1)/n;d2+=(k?"L":"M")+X(Math.log10(v)).toFixed(1)+","+Y(Math.log10(p)).toFixed(1)});E("path",{d:d2,fill:"none",stroke:"var(--muted)","stroke-width":1.6,"stroke-dasharray":"5 4"},svg);
+  T(svg,X(-1.2),Y(-0.35),t("wLegPR"),{"font-size":12.5,fill:"var(--c5)","font-weight":600,"text-anchor":"end"});T(svg,X(-1.2),Y(-0.7),t("wLegK"),{"font-size":12.5,fill:"var(--muted)","text-anchor":"end"});
+  // scatter
+  svg=$("#wSc");svg.innerHTML="";const A=logAxes(svg,400,300,46,10,12,40,0,3,-5,-1,t("wScX"),t("wScY"));
+  const g=E("g",{},svg);for(let i=0;i<n;i++)E("circle",{cx:A.X(Math.log10(kin[i]+1)).toFixed(1),cy:A.Y(Math.max(-5,Math.log10(R[i]))).toFixed(1),r:2.2,fill:"var(--link)",opacity:.35},g);
+  // readouts
+  const topR=[...Array(n).keys()].sort((x,y)=>R[y]-R[x]).slice(0,10),topK=[...Array(n).keys()].sort((x,y)=>kin[y]-kin[x]).slice(0,10);
+  const ov=topR.filter(v=>topK.includes(v)).length;
+  const lx=kin.map(k=>Math.log(k+1)),ly=Array.from(R,v=>Math.log(v)),mx=lx.reduce((a,b)=>a+b)/n,my=ly.reduce((a,b)=>a+b)/n;
+  let sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sxy+=(lx[i]-mx)*(ly[i]-my);sxx+=(lx[i]-mx)**2;syy+=(ly[i]-my)**2}
+  WS.ro.n.textContent=n.toLocaleString()+" / "+G.edges.length.toLocaleString();WS.ro.dang.textContent=G.out.filter(k=>!k).length;
+  WS.ro.ov.textContent=ov+" / 10";WS.ro.r.textContent=f3(sxy/Math.sqrt(sxx*syy));WS.ro.max.textContent=f4(s[0])}
+
+/* ============ text and start ============ */
+function applyText(){document.querySelectorAll("[data-i18n]").forEach(el=>{el.innerHTML=t(el.dataset.i18n)});
+  ["eStep","eRun","eRand","eReset","sStep","sReset","pStep","pRun","pReset","wNew"].forEach(id=>$("#"+id).textContent=t(id));$("#sPlay").textContent=t(SS.playing?"pause":"play")}
+ES.ro=readout($("#eRead"),[["t","eT"],["lam","eLam"],["lamx","eLamX"],["ch","eCh"]]);
+SS.ro=readout($("#sRead"),[["steps","sSteps"],["err","sErr"]]);
+PS.ro=readout($("#pRead"),[["t","pT"],["sum","pSum"],["d","pD"],["err","pErr"]]);
+WS.ro=readout($("#wRead"),[["n","wN"],["dang","wDang"],["max","wMax"],["ov","wOv"],["r","wR"]]);
+seg($("#sSpeed"),{opts:[[2,"spd1"],[20,"spd2"],[2000,"spd3"]],value:2,on:v=>{SS.speed=v}});SS.speed=2;
+$("#eStep").onclick=()=>{eStep();drawE()};$("#eRun").onclick=()=>{for(let k=0;k<20;k++)eStep();drawE()};$("#eRand").onclick=()=>eReset(true);$("#eReset").onclick=()=>eReset(false);
+const outA=(id,v)=>{$(id).textContent=(+v).toFixed(2)};
+$("#sAlpha").oninput=e=>{SS.a=+e.target.value;outA("#sAlphaOut",SS.a);SS.visits.fill(0);SS.visits[SS.cur]=1;SS.steps=0;SS.last=null;SS.pr=pagerank(DG,SS.a);drawS()};
+$("#sPlay").onclick=()=>sPlay(!SS.playing);$("#sStep").onclick=()=>{sPlay(false);sMove();drawS()};$("#sReset").onclick=()=>{sPlay(false);sReset()};
+$("#pAlpha").oninput=e=>{PS.a=+e.target.value;outA("#pAlphaOut",PS.a);pReset()};
+$("#pStep").onclick=()=>{pStep();drawP()};$("#pRun").onclick=()=>{let k=0;while(k++<200&&!(PS.hist.length&&PS.hist[PS.hist.length-1]<1e-12)){pStep()}drawP()};$("#pReset").onclick=pReset;
+$("#fFarm").oninput=e=>{FS.nf=+e.target.value;$("#fFarmOut").textContent=FS.nf;drawF()};
+$("#fAlpha").oninput=e=>{FS.a=+e.target.value;outA("#fAlphaOut",FS.a);drawF()};
+$("#wAlpha").oninput=e=>{WS.a=+e.target.value;outA("#wAlphaOut",WS.a);wDraw()};$("#wNew").onclick=()=>{WS.seed++;wBuild()};
+applyText();outA("#sAlphaOut",0.15);outA("#pAlphaOut",0.15);outA("#fAlphaOut",0.15);outA("#wAlphaOut",0.15);$("#fFarmOut").textContent="0";
+eReset(false);sReset();pReset();drawF();wBuild();
+</script>
+<script>
+(() => {
+  // light/dark switch; the choice is remembered across all of the course demos
+  const btn = document.getElementById("themeBtn"), root = document.documentElement, mq = matchMedia("(prefers-color-scheme: dark)");
+  const SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+  const MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>';
+  const current = () => root.dataset.theme || (mq.matches ? "dark" : "light");
+  const sync = () => { const dark = current() === "dark", label = t(dark ? "themeL" : "themeD");
+    btn.innerHTML = dark ? SUN : MOON; btn.setAttribute("aria-label", label); btn.title = label; };
+  btn.addEventListener("click", () => { const next = current() === "dark" ? "light" : "dark"; root.dataset.theme = next;
+    try { localStorage.setItem("netsci-theme", next); } catch (e) {} sync(); });
+  mq.addEventListener("change", sync);
+  sync();
+})();
+</script>
+</body>
+</html>
